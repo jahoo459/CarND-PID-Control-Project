@@ -30,6 +30,13 @@ string hasData(string s) {
   return "";
 }
 
+  void twiddle (std::vector<double>& p, std::vector<double>& dp)
+  {
+
+
+
+  }
+
 int main() {
   uWS::Hub h;
 
@@ -37,7 +44,11 @@ int main() {
   /**
    * TODO: Initialize the pid variable.
    */
-  pid.Init(0.1, 0, 0.8);
+  pid.Init(0.06, 0.00031, 1.29);
+  double old_cte;
+  int cycle_counter;
+  bool is_first_cycle = true;
+
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
@@ -55,6 +66,19 @@ int main() {
         if (event == "telemetry") {
           // j[1] is the data JSON object
           double cte = std::stod(j[1]["cte"].get<string>());
+          
+          // if(fabs(cte-old_cte) > 1.0 && (cycle_counter < 2))
+          // {
+          //   cte = old_cte;
+          //   cycle_counter++;
+          // }
+          // else
+          // {
+          //   old_cte = cte;
+          //   counter = 0;
+          // }
+          
+
           double speed = std::stod(j[1]["speed"].get<string>());
           double angle = std::stod(j[1]["steering_angle"].get<string>());
           double steer_value;
@@ -66,8 +90,13 @@ int main() {
            */
           pid.UpdateError(cte);
           steer_value = pid.TotalError();
-          if (steer_value > 1.0) steer_value = 1;
-          if(steer_value < -1) steer_value = -1;
+
+          double best_error = steer_value;
+
+
+
+          if (steer_value > 1.0) steer_value = 1.0;
+          if (steer_value < -1.0) steer_value = -1.0;
           
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
@@ -75,7 +104,14 @@ int main() {
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+          if(fabs(steer_value) > 0.2)
+          {
+            msgJson["throttle"] = 0.0;
+          }
+          else
+          {
+            msgJson["throttle"] = 0.3;
+          }
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
