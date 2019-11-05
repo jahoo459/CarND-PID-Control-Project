@@ -45,7 +45,7 @@ int main() {
    * TODO: Initialize the pid variable.
    */
   // pid.Init(0.05, 0.0004, 1.3);
-  pid.Init(0.05, 0.0001, 1.5);
+  pid.Init(0.07, 0.005, 1.8);
   // double old_cte;
   // int cycle_counter;
   // bool is_first_cycle = true;
